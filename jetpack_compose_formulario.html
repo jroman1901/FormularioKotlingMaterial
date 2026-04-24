@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulario en Jetpack Compose — Guía Paso a Paso</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --border: #2e3248;
+    --accent: #7c6af7;
+    --accent2: #4ecdc4;
+    --accent3: #f7c948;
+    --text: #e8e9f0;
+    --text2: #9499b8;
+    --text3: #5d6282;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --pink: #f472b6;
+    --blue: #60a5fa;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .logo-dot {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: white;
+  }
+  .header-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .progress-bar {
+    position: fixed;
+    top: 60px; left: 0;
+    height: 3px;
+    background: var(--accent);
+    transition: width 0.3s ease;
+    z-index: 99;
+  }
+
+  /* LAYOUT */
+  .layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .sidebar-title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+    padding: 0 0.5rem;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    color: var(--text2);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(124,106,247,0.15); color: var(--accent); }
+  .nav-num {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .nav-item.active .nav-num { background: var(--accent); color: white; }
+  .nav-item.done .nav-num { background: rgba(74,222,128,0.2); color: var(--green); }
+
+  /* MAIN */
+  .main { padding: 2rem 2.5rem; max-width: 860px; }
+
+  /* STEP SECTIONS */
+  .step-section { display: none; }
+  .step-section.active { display: block; }
+
+  .step-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,106,247,0.12);
+    border: 1px solid rgba(124,106,247,0.3);
+    color: var(--accent);
+    border-radius: 100px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .step-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+  .step-desc {
+    font-size: 15px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* CONCEPT CARDS */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+  .concept-card .icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .concept-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .concept-card p {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* EXPLANATION BOX */
+  .explain-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin: 1.25rem 0;
+  }
+  .explain-box h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .explain-box p, .explain-box li {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .explain-box ul { padding-left: 1.25rem; }
+  .explain-box li { margin-bottom: 4px; }
+
+  .tip-box {
+    background: rgba(78,205,196,0.08);
+    border: 1px solid rgba(78,205,196,0.25);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .tip-box .tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+  .tip-box p { font-size: 13px; color: #9fe0dc; line-height: 1.6; }
+  .tip-box strong { color: var(--accent2); }
+
+  .warn-box {
+    background: rgba(247,201,72,0.08);
+    border: 1px solid rgba(247,201,72,0.25);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .warn-box .tip-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+  .warn-box p { font-size: 13px; color: #f5d98a; line-height: 1.6; }
+  .warn-box strong { color: var(--accent3); }
+
+  /* CODE BLOCKS */
+  .code-wrap {
+    background: #0d0f18;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 1.25rem 0;
+    overflow: hidden;
+  }
+  .code-header {
+    background: var(--surface2);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-header span {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .code-dots { display: flex; gap: 5px; }
+  .code-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  pre {
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .num { color: #f78c6c; }
+  .cm { color: #546e7a; font-style: italic; }
+  .type { color: #ffcb6b; }
+  .param { color: #89ddff; }
+  .ann { color: #f07178; }
+
+  /* COMPARISON */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 1.25rem 0;
+  }
+  .compare-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .compare-card.bad { border: 1px solid rgba(248,113,113,0.3); }
+  .compare-card.good { border: 1px solid rgba(74,222,128,0.3); }
+  .compare-label {
+    padding: 7px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .compare-card.bad .compare-label { background: rgba(248,113,113,0.1); color: var(--red); }
+  .compare-card.good .compare-label { background: rgba(74,222,128,0.1); color: var(--green); }
+  .compare-card pre { font-size: 12px; padding: 1rem; }
+
+  /* STEPS LIST */
+  .steps-list { margin: 1.25rem 0; }
+  .step-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 1.25rem;
+    position: relative;
+  }
+  .step-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: -8px;
+    width: 1px;
+    background: var(--border);
+  }
+  .step-bullet {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(124,106,247,0.15);
+    border: 2px solid rgba(124,106,247,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--accent);
+    flex-shrink: 0;
+  }
+  .step-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .step-content p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* INLINE CODE */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--accent2);
+  }
+
+  /* NAV BUTTONS */
+  .nav-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .btn {
+    padding: 10px 24px;
+    border-radius: var(--radius-sm);
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--text3); }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 1.25rem 0;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--text2);
+    font-weight: 600;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+  }
+  tr:last-child td { border-bottom: none; }
+  td code { font-size: 11px; }
+  .tag-good { color: var(--green); font-weight: 600; }
+  .tag-bad { color: var(--red); font-weight: 600; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { padding: 1.5rem; }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-dot">K</div>
+    Jetpack Compose — Formularios
+  </div>
+  <div class="header-badge">Kotlin · Android Studio · Material 3</div>
+</div>
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Contenido</div>
+    <button class="nav-item active" onclick="goTo(0)">
+      <span class="nav-num">1</span> Introducción
+    </button>
+    <button class="nav-item" onclick="goTo(1)">
+      <span class="nav-num">2</span> Modelo de datos
+    </button>
+    <button class="nav-item" onclick="goTo(2)">
+      <span class="nav-num">3</span> Estado: val vs var
+    </button>
+    <button class="nav-item" onclick="goTo(3)">
+      <span class="nav-num">4</span> mutableStateOf
+    </button>
+    <button class="nav-item" onclick="goTo(4)">
+      <span class="nav-num">5</span> Funciones limpiar y validar
+    </button>
+    <button class="nav-item" onclick="goTo(5)">
+      <span class="nav-num">6</span> OutlinedTextField
+    </button>
+    <button class="nav-item" onclick="goTo(6)">
+      <span class="nav-num">7</span> Lista en memoria
+    </button>
+    <button class="nav-item" onclick="goTo(7)">
+      <span class="nav-num">8</span> Código completo
+    </button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- PASO 1: INTRODUCCIÓN -->
+    <section class="step-section active" id="step-0">
+      <div class="step-header">
+        <div class="step-tag">Paso 1</div>
+        <h1 class="step-title">¿Qué vamos a construir?</h1>
+        <p class="step-desc">Un formulario Android con Kotlin y Jetpack Compose que guarda registros de personas en memoria (sin base de datos).</p>
+      </div>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <div class="icon">📱</div>
+          <h4>Jetpack Compose</h4>
+          <p>Framework moderno de Google para crear interfaces Android con código declarativo en Kotlin.</p>
+        </div>
+        <div class="concept-card">
+          <div class="icon">🧠</div>
+          <h4>Estado (State)</h4>
+          <p>Los datos que la UI observa y actualiza automáticamente cuando cambian.</p>
+        </div>
+        <div class="concept-card">
+          <div class="icon">🗂️</div>
+          <h4>Memoria (RAM)</h4>
+          <p>Los datos se guardan en una lista mientras la app está abierta. Al cerrarla se borran.</p>
+        </div>
+        <div class="concept-card">
+          <div class="icon">✅</div>
+          <h4>Validación</h4>
+          <p>Verificamos que los campos no estén vacíos y que el formato sea correcto antes de guardar.</p>
+        </div>
+      </div>
+
+      <div class="explain-box">
+        <h3>🗂️ Estructura del proyecto</h3>
+        <ul>
+          <li>📄 <code>model/Persona.kt</code> — Clase de datos (nombre, email, edad…)</li>
+          <li>📄 <code>ui/RegistroScreen.kt</code> — Pantalla principal con el formulario</li>
+          <li>📄 <code>MainActivity.kt</code> — Punto de entrada de la app</li>
+        </ul>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <p><strong>Concepto clave:</strong> En Compose, la UI se <em>redibuja automáticamente</em> cada vez que un estado cambia. No necesitas llamar a <code>invalidate()</code> ni <code>notifyDataSetChanged()</code> como en el sistema antiguo.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-primary" onclick="goTo(1)">Siguiente: Modelo de datos →</button>
+      </div>
+    </section>
+
+    <!-- PASO 2: MODELO -->
+    <section class="step-section" id="step-1">
+      <div class="step-header">
+        <div class="step-tag">Paso 2</div>
+        <h1 class="step-title">Modelo de datos</h1>
+        <p class="step-desc">Primero definimos la estructura de los datos que vamos a guardar usando una <code>data class</code>.</p>
+      </div>
+
+      <div class="explain-box">
+        <h3>¿Qué es una data class?</h3>
+        <p>Es una clase especial de Kotlin diseñada para guardar datos. Kotlin genera automáticamente <code>equals()</code>, <code>hashCode()</code>, <code>toString()</code> y <code>copy()</code>.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>model/Persona.kt</span>
+        </div>
+        <pre><span class="cm">// El paquete indica dónde vive este archivo</span>
+<span class="kw">package</span> com.tuapp.registro.model
+
+<span class="cm">// data class = clase especial para guardar datos</span>
+<span class="kw">data class</span> <span class="type">Persona</span>(
+    <span class="kw">val</span> <span class="param">id</span>: <span class="type">Int</span>,         <span class="cm">// identificador único</span>
+    <span class="kw">val</span> <span class="param">nombre</span>: <span class="type">String</span>,   <span class="cm">// texto — nombre de la persona</span>
+    <span class="kw">val</span> <span class="param">apellido</span>: <span class="type">String</span>, <span class="cm">// texto — apellido</span>
+    <span class="kw">val</span> <span class="param">email</span>: <span class="type">String</span>,    <span class="cm">// texto — correo electrónico</span>
+    <span class="kw">val</span> <span class="param">telefono</span>: <span class="type">String</span>, <span class="cm">// texto — número de teléfono</span>
+    <span class="kw">val</span> <span class="param">edad</span>: <span class="type">Int</span>         <span class="cm">// número — edad en años</span>
+)</pre>
+      </div>
+
+      <div class="explain-box">
+        <h3>¿Por qué val dentro de la data class?</h3>
+        <ul>
+          <li>Cada campo usa <code>val</code> porque un objeto <code>Persona</code> no debería cambiar una vez creado.</li>
+          <li>Si quisieras modificar una persona, usarías <code>.copy(nombre = "nuevo")</code> en lugar de mutarla.</li>
+          <li>Esto se llama <strong>inmutabilidad</strong> — un principio importante en Kotlin.</li>
+        </ul>
+      </div>
+
+      <table>
+        <tr><th>Tipo Kotlin</th><th>Descripción</th><th>Ejemplo</th></tr>
+        <tr><td><code>String</code></td><td>Texto</td><td><code>"José Vinicio"</code></td></tr>
+        <tr><td><code>Int</code></td><td>Número entero</td><td><code>35</code></td></tr>
+        <tr><td><code>Boolean</code></td><td>Verdadero o falso</td><td><code>true</code></td></tr>
+        <tr><td><code>Double</code></td><td>Número decimal</td><td><code>3.14</code></td></tr>
+      </table>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(0)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(2)">Siguiente: val vs var →</button>
+      </div>
+    </section>
+
+    <!-- PASO 3: VAL VS VAR -->
+    <section class="step-section" id="step-2">
+      <div class="step-header">
+        <div class="step-tag">Paso 3</div>
+        <h1 class="step-title">val vs var — La regla de oro</h1>
+        <p class="step-desc">Esta es la diferencia más importante en Kotlin. Entenderla bien evita la mayoría de errores en formularios.</p>
+      </div>
+
+      <div class="compare-grid">
+        <div class="compare-card bad">
+          <div class="compare-label">❌ val — no reasignable</div>
+          <pre><span class="kw">val</span> nombre = <span class="str">"José"</span>
+nombre = <span class="str">"Carlos"</span>
+<span class="cm">// ERROR: val no puede
+// cambiar su referencia</span></pre>
+        </div>
+        <div class="compare-card good">
+          <div class="compare-label">✅ var — reasignable</div>
+          <pre><span class="kw">var</span> nombre = <span class="str">"José"</span>
+nombre = <span class="str">"Carlos"</span>
+<span class="cm">// OK: var sí puede
+// cambiar su valor</span></pre>
+        </div>
+      </div>
+
+      <div class="explain-box">
+        <h3>La caja sellada (analogía)</h3>
+        <p>Imagina que <code>val</code> es una caja sellada con candado. <strong>No puedes cambiar la caja</strong>, pero si la caja tiene compartimentos internos, puedes cambiar lo que hay dentro de ellos.</p>
+        <br>
+        <p>Por eso <code>val nombre = remember { mutableStateOf("") }</code> funciona: la caja (referencia) es fija, pero el contenido (<code>.value</code>) sí puede cambiar.</p>
+      </div>
+
+      <table>
+        <tr><th>Declaración</th><th>¿Puedes hacer x = "algo"?</th><th>Usar en formularios</th></tr>
+        <tr>
+          <td><code>val x = ...</code></td>
+          <td class="tag-bad">❌ No</td>
+          <td>Solo con <code>.value</code></td>
+        </tr>
+        <tr>
+          <td><code>var x = ...</code></td>
+          <td class="tag-good">✅ Sí</td>
+          <td>Directo sin <code>.value</code></td>
+        </tr>
+        <tr>
+          <td><code>val x by remember {...}</code></td>
+          <td class="tag-bad">❌ No — ERROR</td>
+          <td>Combinación inválida para campos</td>
+        </tr>
+        <tr>
+          <td><code>var x by remember {...}</code></td>
+          <td class="tag-good">✅ Sí</td>
+          <td>La forma más limpia</td>
+        </tr>
+      </table>
+
+      <div class="warn-box">
+        <div class="tip-icon">⚠️</div>
+        <p><strong>Error común:</strong> Usar <code>val</code> con <code>by</code> es la combinación que da error en <code>limpiar()</code>. Siempre usa <code>var</code> cuando necesites reasignar el campo directamente.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Siguiente: mutableStateOf →</button>
+      </div>
+    </section>
+
+    <!-- PASO 4: mutableStateOf -->
+    <section class="step-section" id="step-3">
+      <div class="step-header">
+        <div class="step-tag">Paso 4</div>
+        <h1 class="step-title">mutableStateOf y remember</h1>
+        <p class="step-desc">Así declaramos los campos del formulario para que Compose los observe y redibuje la pantalla automáticamente.</p>
+      </div>
+
+      <div class="explain-box">
+        <h3>¿Qué hace remember?</h3>
+        <p><code>remember</code> guarda el valor en memoria mientras el Composable está activo. Sin él, el estado se reiniciaría en cada redibujado.</p>
+      </div>
+
+      <div class="explain-box">
+        <h3>¿Qué hace mutableStateOf?</h3>
+        <p><code>mutableStateOf</code> crea un contenedor observable. Cuando su valor cambia, Compose sabe que debe redibujar los componentes que lo usan.</p>
+      </div>
+
+      <div class="compare-grid">
+        <div class="compare-card good">
+          <div class="compare-label">✅ Opción A — var + by (recomendada)</div>
+          <pre><span class="cm">// Declarar</span>
+<span class="kw">var</span> nombre <span class="kw">by</span> <span class="fn">remember</span> {
+    <span class="fn">mutableStateOf</span>(<span class="str">""</span>)
+}
+
+<span class="cm">// Leer y escribir SIN .value</span>
+<span class="type">Text</span>(nombre)
+nombre = <span class="str">"José"</span></pre>
+        </div>
+        <div class="compare-card good">
+          <div class="compare-label">✅ Opción B — val + = + .value</div>
+          <pre><span class="cm">// Declarar</span>
+<span class="kw">val</span> nombre = <span class="fn">remember</span> {
+    <span class="fn">mutableStateOf</span>(<span class="str">""</span>)
+}
+
+<span class="cm">// Leer y escribir CON .value</span>
+<span class="type">Text</span>(nombre.value)
+nombre.value = <span class="str">"José"</span></pre>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Declaración de estados del formulario</span>
+        </div>
+        <pre><span class="cm">// ── Campos del formulario (var + by = sin .value) ──</span>
+<span class="kw">var</span> nombre   <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+<span class="kw">var</span> apellido <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+<span class="kw">var</span> email    <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+<span class="kw">var</span> telefono <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+<span class="kw">var</span> edad     <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+
+<span class="cm">// ── Errores de validación (Boolean) ──</span>
+<span class="kw">var</span> nombreError   <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+<span class="kw">var</span> apellidoError <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+<span class="kw">var</span> emailError    <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+<span class="kw">var</span> telefonoError <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+<span class="kw">var</span> edadError     <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+
+<span class="cm">// ── Lista en memoria ──</span>
+<span class="kw">val</span> personas = <span class="fn">remember</span> { <span class="fn">mutableStateListOf</span>&lt;<span class="type">Persona</span>&gt;() }
+<span class="kw">var</span> nextId   <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableIntStateOf</span>(<span class="num">1</span>) }
+
+<span class="cm">// ── Snackbar (NO va dentro de mutableStateOf) ──</span>
+<span class="kw">val</span> snackbarHostState = <span class="fn">remember</span> { <span class="type">SnackbarHostState</span>() }</pre>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <p><strong>Nota:</strong> <code>SnackbarHostState</code> no es un estado observable de Compose, es un objeto de control. Por eso va directo en <code>remember { SnackbarHostState() }</code>, sin <code>mutableStateOf</code>.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Siguiente: validar y limpiar →</button>
+      </div>
+    </section>
+
+    <!-- PASO 5: FUNCIONES -->
+    <section class="step-section" id="step-4">
+      <div class="step-header">
+        <div class="step-tag">Paso 5</div>
+        <h1 class="step-title">Funciones: limpiar, validar y guardar</h1>
+        <p class="step-desc">Funciones locales dentro del Composable que manipulan el estado del formulario.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Función limpiar()</span>
+        </div>
+        <pre><span class="cm">// Resetea todos los campos y errores al estado inicial</span>
+<span class="kw">fun</span> <span class="fn">limpiar</span>() {
+    nombre   = <span class="str">""</span>  <span class="cm">// limpia el campo nombre</span>
+    apellido = <span class="str">""</span>  <span class="cm">// limpia el campo apellido</span>
+    email    = <span class="str">""</span>  <span class="cm">// limpia el campo email</span>
+    telefono = <span class="str">""</span>  <span class="cm">// limpia el campo teléfono</span>
+    edad     = <span class="str">""</span>  <span class="cm">// limpia el campo edad</span>
+
+    <span class="cm">// También limpiamos los indicadores de error</span>
+    nombreError   = <span class="kw">false</span>
+    apellidoError = <span class="kw">false</span>
+    emailError    = <span class="kw">false</span>
+    telefonoError = <span class="kw">false</span>
+    edadError     = <span class="kw">false</span>
+}</pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Función validar()</span>
+        </div>
+        <pre><span class="cm">// Retorna true si todo está correcto, false si hay errores</span>
+<span class="kw">fun</span> <span class="fn">validar</span>(): <span class="type">Boolean</span> {
+    <span class="kw">var</span> valido = <span class="kw">true</span>
+
+    <span class="cm">// Verificamos que nombre no esté vacío</span>
+    <span class="kw">if</span> (nombre.<span class="fn">isBlank</span>()) {
+        nombreError = <span class="kw">true</span>   <span class="cm">// activa el mensaje de error</span>
+        valido = <span class="kw">false</span>        <span class="cm">// marca el formulario como inválido</span>
+    }
+
+    <span class="cm">// Verificamos apellido</span>
+    <span class="kw">if</span> (apellido.<span class="fn">isBlank</span>()) {
+        apellidoError = <span class="kw">true</span>
+        valido = <span class="kw">false</span>
+    }
+
+    <span class="cm">// Verificamos email con formato válido</span>
+    <span class="kw">if</span> (email.<span class="fn">isBlank</span>() || !android.util.<span class="type">Patterns</span>.EMAIL_ADDRESS
+            .<span class="fn">matcher</span>(email).<span class="fn">matches</span>()) {
+        emailError = <span class="kw">true</span>
+        valido = <span class="kw">false</span>
+    }
+
+    <span class="cm">// Verificamos que edad sea un número válido</span>
+    <span class="kw">val</span> edadNum = edad.<span class="fn">toIntOrNull</span>()
+    <span class="kw">if</span> (edadNum == <span class="kw">null</span> || edadNum !<span class="kw">in</span> <span class="num">1</span>..<span class="num">120</span>) {
+        edadError = <span class="kw">true</span>
+        valido = <span class="kw">false</span>
+    }
+
+    <span class="kw">return</span> valido  <span class="cm">// true = todo OK, false = hay errores</span>
+}</pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Función guardar()</span>
+        </div>
+        <pre><span class="kw">fun</span> <span class="fn">guardar</span>() {
+    <span class="cm">// Si la validación falla, detenemos la ejecución</span>
+    <span class="kw">if</span> (!<span class="fn">validar</span>()) <span class="kw">return</span>
+
+    <span class="cm">// Creamos el objeto Persona con los datos del formulario</span>
+    personas.<span class="fn">add</span>(
+        <span class="type">Persona</span>(
+            id       = nextId++,          <span class="cm">// incrementa el ID</span>
+            nombre   = nombre.<span class="fn">trim</span>(),    <span class="cm">// .trim() quita espacios extra</span>
+            apellido = apellido.<span class="fn">trim</span>(),
+            email    = email.<span class="fn">trim</span>().<span class="fn">lowercase</span>(),  <span class="cm">// minúsculas</span>
+            telefono = telefono.<span class="fn">trim</span>(),
+            edad     = edad.<span class="fn">toInt</span>()     <span class="cm">// ya validamos que es número</span>
+        )
+    )
+
+    <span class="fn">limpiar</span>()  <span class="cm">// limpia el formulario después de guardar</span>
+}</pre>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <p><strong>isBlank() vs isEmpty():</strong> <code>isEmpty()</code> solo verifica si la cadena tiene longitud 0. <code>isBlank()</code> también considera espacios en blanco como vacío. Para formularios, <code>isBlank()</code> es mejor.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(3)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(5)">Siguiente: OutlinedTextField →</button>
+      </div>
+    </section>
+
+    <!-- PASO 6: OUTLINEDTEXTFIELD -->
+    <section class="step-section" id="step-5">
+      <div class="step-header">
+        <div class="step-tag">Paso 6</div>
+        <h1 class="step-title">OutlinedTextField</h1>
+        <p class="step-desc">El componente principal para capturar texto en Jetpack Compose con Material 3.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Campo de nombre con validación</span>
+        </div>
+        <pre><span class="type">OutlinedTextField</span>(
+    <span class="cm">// Muestra el valor actual del estado</span>
+    value = nombre,
+
+    <span class="cm">// Se llama cada vez que el usuario escribe algo</span>
+    <span class="cm">// 'it' es el nuevo texto ingresado</span>
+    onValueChange = {
+        nombre = it          <span class="cm">// actualiza el estado</span>
+        nombreError = <span class="kw">false</span>  <span class="cm">// quita el error mientras escribe</span>
+    },
+
+    <span class="cm">// Etiqueta flotante del campo</span>
+    label = { <span class="type">Text</span>(<span class="str">"Nombre *"</span>) },
+
+    <span class="cm">// Ícono al inicio del campo</span>
+    leadingIcon = {
+        <span class="type">Icon</span>(<span class="type">Icons</span>.Default.<span class="fn">Person</span>, contentDescription = <span class="kw">null</span>)
+    },
+
+    <span class="cm">// true = muestra el campo en rojo con mensaje de error</span>
+    isError = nombreError,
+
+    <span class="cm">// Texto que aparece debajo cuando hay error</span>
+    supportingText = <span class="kw">if</span> (nombreError) {
+        { <span class="type">Text</span>(<span class="str">"El nombre es obligatorio"</span>) }
+    } <span class="kw">else null</span>,
+
+    <span class="cm">// Ocupa todo el ancho disponible</span>
+    modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(),
+
+    <span class="cm">// No permite múltiples líneas</span>
+    singleLine = <span class="kw">true</span>
+)</pre>
+      </div>
+
+      <div class="explain-box">
+        <h3>Tipos de teclado con KeyboardOptions</h3>
+        <ul>
+          <li><code>KeyboardType.Text</code> — teclado normal (por defecto)</li>
+          <li><code>KeyboardType.Email</code> — teclado con @ y .com</li>
+          <li><code>KeyboardType.Number</code> — solo números</li>
+          <li><code>KeyboardType.Phone</code> — teclado de teléfono</li>
+        </ul>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Campo de email con teclado especial</span>
+        </div>
+        <pre><span class="type">OutlinedTextField</span>(
+    value = email,
+    onValueChange = { email = it; emailError = <span class="kw">false</span> },
+    label = { <span class="type">Text</span>(<span class="str">"Correo electrónico *"</span>) },
+    leadingIcon = {
+        <span class="type">Icon</span>(<span class="type">Icons</span>.Default.<span class="fn">Email</span>, contentDescription = <span class="kw">null</span>)
+    },
+    isError = emailError,
+    supportingText = <span class="kw">if</span> (emailError) {
+        { <span class="type">Text</span>(<span class="str">"Ingresa un correo válido"</span>) }
+    } <span class="kw">else null</span>,
+    modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(),
+    singleLine = <span class="kw">true</span>,
+
+    <span class="cm">// Activa el teclado de email en el dispositivo</span>
+    keyboardOptions = <span class="type">KeyboardOptions</span>(
+        keyboardType = <span class="type">KeyboardType</span>.Email
+    )
+)</pre>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">💡</div>
+        <p><strong>RoundedCornerShape:</strong> Se usa para darle esquinas redondeadas a botones y tarjetas. <code>RoundedCornerShape(50)</code> hace un botón en forma de píldora. El import necesario es <code>androidx.compose.foundation.shape.RoundedCornerShape</code>.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(4)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(6)">Siguiente: Lista en memoria →</button>
+      </div>
+    </section>
+
+    <!-- PASO 7: LISTA -->
+    <section class="step-section" id="step-6">
+      <div class="step-header">
+        <div class="step-tag">Paso 7</div>
+        <h1 class="step-title">Lista en memoria</h1>
+        <p class="step-desc">Guardamos los registros en una lista observable. Cuando agregamos o eliminamos, la UI se actualiza sola.</p>
+      </div>
+
+      <div class="explain-box">
+        <h3>mutableStateListOf vs mutableListOf</h3>
+        <ul>
+          <li><code>mutableListOf()</code> — lista normal de Kotlin, Compose NO la observa</li>
+          <li><code>mutableStateListOf()</code> — lista observable, Compose SÍ la observa y redibuja cuando cambia</li>
+        </ul>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Lista observable y LazyColumn</span>
+        </div>
+        <pre><span class="cm">// Lista que Compose observa automáticamente</span>
+<span class="kw">val</span> personas = <span class="fn">remember</span> { <span class="fn">mutableStateListOf</span>&lt;<span class="type">Persona</span>&gt;() }
+
+<span class="cm">// LazyColumn = RecyclerView moderno en Compose</span>
+<span class="cm">// Solo renderiza los elementos visibles en pantalla</span>
+<span class="type">LazyColumn</span>(
+    modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxSize</span>(),
+    verticalArrangement = <span class="type">Arrangement</span>.<span class="fn">spacedBy</span>(<span class="num">8</span>.dp),
+    contentPadding = <span class="type">PaddingValues</span>(vertical = <span class="num">16</span>.dp)
+) {
+
+    <span class="cm">// Elemento único (tarjeta del formulario)</span>
+    item {
+        <span class="type">FormularioCard</span>()
+    }
+
+    <span class="cm">// Lista de personas — key evita redibujos innecesarios</span>
+    items(personas, key = { it.id }) { persona ->
+        <span class="type">PersonaCard</span>(
+            persona = persona,
+            onEliminar = { personas.<span class="fn">remove</span>(persona) }
+        )
+    }
+
+    <span class="cm">// Muestra mensaje si la lista está vacía</span>
+    <span class="kw">if</span> (personas.<span class="fn">isEmpty</span>()) {
+        item {
+            <span class="type">Text</span>(
+                <span class="str">"Sin registros aún"</span>,
+                color = <span class="type">MaterialTheme</span>.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}</pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>Tarjeta de persona con avatar</span>
+        </div>
+        <pre><span class="ann">@Composable</span>
+<span class="kw">fun</span> <span class="fn">PersonaCard</span>(persona: <span class="type">Persona</span>, onEliminar: () -> <span class="type">Unit</span>) {
+
+    <span class="cm">// Genera iniciales: "José Vinicio" → "JV"</span>
+    <span class="kw">val</span> iniciales = buildString {
+        <span class="kw">if</span> (persona.nombre.<span class="fn">isNotEmpty</span>())
+            <span class="fn">append</span>(persona.nombre.first().<span class="fn">uppercaseChar</span>())
+        <span class="kw">if</span> (persona.apellido.<span class="fn">isNotEmpty</span>())
+            <span class="fn">append</span>(persona.apellido.first().<span class="fn">uppercaseChar</span>())
+    }
+
+    <span class="type">Card</span>(modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>()) {
+        <span class="type">Row</span>(
+            modifier = <span class="type">Modifier</span>.<span class="fn">padding</span>(<span class="num">12</span>.dp),
+            verticalAlignment = <span class="type">Alignment</span>.CenterVertically
+        ) {
+            <span class="cm">// Círculo con iniciales</span>
+            <span class="type">Box</span>(
+                modifier = <span class="type">Modifier</span>
+                    .<span class="fn">size</span>(<span class="num">44</span>.dp)
+                    .<span class="fn">clip</span>(<span class="type">CircleShape</span>)
+                    .<span class="fn">background</span>(<span class="type">MaterialTheme</span>.colorScheme.primaryContainer),
+                contentAlignment = <span class="type">Alignment</span>.Center
+            ) {
+                <span class="type">Text</span>(iniciales, fontWeight = <span class="type">FontWeight</span>.Bold)
+            }
+
+            <span class="type">Spacer</span>(<span class="type">Modifier</span>.<span class="fn">width</span>(<span class="num">12</span>.dp))
+
+            <span class="cm">// Datos de la persona</span>
+            <span class="type">Column</span>(modifier = <span class="type">Modifier</span>.<span class="fn">weight</span>(<span class="num">1</span>f)) {
+                <span class="type">Text</span>(<span class="str">"${persona.nombre} ${persona.apellido}"</span>)
+                <span class="type">Text</span>(persona.email, style = <span class="type">MaterialTheme</span>.typography.bodySmall)
+            }
+
+            <span class="cm">// Botón eliminar</span>
+            <span class="type">IconButton</span>(onClick = onEliminar) {
+                <span class="type">Icon</span>(<span class="type">Icons</span>.Default.<span class="fn">Delete</span>, tint = <span class="type">MaterialTheme</span>.colorScheme.error)
+            }
+        }
+    }
+}</pre>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(5)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(7)">Siguiente: Código completo →</button>
+      </div>
+    </section>
+
+    <!-- PASO 8: CÓDIGO COMPLETO -->
+    <section class="step-section" id="step-7">
+      <div class="step-header">
+        <div class="step-tag">Paso 8</div>
+        <h1 class="step-title">Código completo</h1>
+        <p class="step-desc">El archivo <code>RegistroScreen.kt</code> completo con todos los conceptos integrados.</p>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-dots">
+            <div class="code-dot" style="background:#f87171"></div>
+            <div class="code-dot" style="background:#fbbf24"></div>
+            <div class="code-dot" style="background:#4ade80"></div>
+          </div>
+          <span>ui/RegistroScreen.kt — Completo</span>
+        </div>
+        <pre><span class="kw">package</span> com.tuapp.registro.ui
+
+<span class="kw">import</span> androidx.compose.foundation.background
+<span class="kw">import</span> androidx.compose.foundation.layout.*
+<span class="kw">import</span> androidx.compose.foundation.lazy.LazyColumn
+<span class="kw">import</span> androidx.compose.foundation.lazy.items
+<span class="kw">import</span> androidx.compose.foundation.shape.CircleShape
+<span class="kw">import</span> androidx.compose.foundation.shape.RoundedCornerShape
+<span class="kw">import</span> androidx.compose.foundation.text.KeyboardOptions
+<span class="kw">import</span> androidx.compose.material.icons.Icons
+<span class="kw">import</span> androidx.compose.material.icons.filled.*
+<span class="kw">import</span> androidx.compose.material3.*
+<span class="kw">import</span> androidx.compose.runtime.*
+<span class="kw">import</span> androidx.compose.ui.Alignment
+<span class="kw">import</span> androidx.compose.ui.Modifier
+<span class="kw">import</span> androidx.compose.ui.draw.clip
+<span class="kw">import</span> androidx.compose.ui.text.font.FontWeight
+<span class="kw">import</span> androidx.compose.ui.text.input.KeyboardType
+<span class="kw">import</span> androidx.compose.ui.unit.dp
+<span class="kw">import</span> com.tuapp.registro.model.Persona
+
+<span class="ann">@OptIn</span>(<span class="type">ExperimentalMaterial3Api</span>::<span class="kw">class</span>)
+<span class="ann">@Composable</span>
+<span class="kw">fun</span> <span class="fn">RegistroScreen</span>() {
+
+    <span class="cm">// ── ESTADO DEL FORMULARIO ──────────────────────</span>
+    <span class="kw">var</span> nombre   <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+    <span class="kw">var</span> apellido <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+    <span class="kw">var</span> email    <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+    <span class="kw">var</span> telefono <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+    <span class="kw">var</span> edad     <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="str">""</span>) }
+
+    <span class="cm">// ── ERRORES DE VALIDACIÓN ──────────────────────</span>
+    <span class="kw">var</span> nombreError   <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+    <span class="kw">var</span> apellidoError <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+    <span class="kw">var</span> emailError    <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+    <span class="kw">var</span> telefonoError <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+    <span class="kw">var</span> edadError     <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableStateOf</span>(<span class="kw">false</span>) }
+
+    <span class="cm">// ── LISTA EN MEMORIA ───────────────────────────</span>
+    <span class="kw">val</span> personas = <span class="fn">remember</span> { <span class="fn">mutableStateListOf</span>&lt;<span class="type">Persona</span>&gt;() }
+    <span class="kw">var</span> nextId   <span class="kw">by</span> <span class="fn">remember</span> { <span class="fn">mutableIntStateOf</span>(<span class="num">1</span>) }
+
+    <span class="cm">// ── SNACKBAR ───────────────────────────────────</span>
+    <span class="kw">val</span> snackbarHostState = <span class="fn">remember</span> { <span class="type">SnackbarHostState</span>() }
+    <span class="kw">val</span> scope = <span class="fn">rememberCoroutineScope</span>()
+
+    <span class="cm">// ── FUNCIÓN LIMPIAR ────────────────────────────</span>
+    <span class="kw">fun</span> <span class="fn">limpiar</span>() {
+        nombre = <span class="str">""</span>; apellido = <span class="str">""</span>; email = <span class="str">""</span>
+        telefono = <span class="str">""</span>; edad = <span class="str">""</span>
+        nombreError = <span class="kw">false</span>; apellidoError = <span class="kw">false</span>
+        emailError = <span class="kw">false</span>; telefonoError = <span class="kw">false</span>; edadError = <span class="kw">false</span>
+    }
+
+    <span class="cm">// ── FUNCIÓN VALIDAR ────────────────────────────</span>
+    <span class="kw">fun</span> <span class="fn">validar</span>(): <span class="type">Boolean</span> {
+        <span class="kw">var</span> valido = <span class="kw">true</span>
+        <span class="kw">if</span> (nombre.<span class="fn">isBlank</span>())   { nombreError   = <span class="kw">true</span>; valido = <span class="kw">false</span> }
+        <span class="kw">if</span> (apellido.<span class="fn">isBlank</span>()) { apellidoError = <span class="kw">true</span>; valido = <span class="kw">false</span> }
+        <span class="kw">if</span> (email.<span class="fn">isBlank</span>() || !android.util.<span class="type">Patterns</span>.EMAIL_ADDRESS
+                .<span class="fn">matcher</span>(email).<span class="fn">matches</span>()) {
+            emailError = <span class="kw">true</span>; valido = <span class="kw">false</span>
+        }
+        <span class="kw">val</span> n = edad.<span class="fn">toIntOrNull</span>()
+        <span class="kw">if</span> (n == <span class="kw">null</span> || n !<span class="kw">in</span> <span class="num">1</span>..<span class="num">120</span>) { edadError = <span class="kw">true</span>; valido = <span class="kw">false</span> }
+        <span class="kw">return</span> valido
+    }
+
+    <span class="cm">// ── FUNCIÓN GUARDAR ────────────────────────────</span>
+    <span class="kw">fun</span> <span class="fn">guardar</span>() {
+        <span class="kw">if</span> (!<span class="fn">validar</span>()) <span class="kw">return</span>
+        personas.<span class="fn">add</span>(<span class="type">Persona</span>(nextId++,
+            nombre.<span class="fn">trim</span>(), apellido.<span class="fn">trim</span>(),
+            email.<span class="fn">trim</span>().<span class="fn">lowercase</span>(),
+            telefono.<span class="fn">trim</span>(), edad.<span class="fn">toInt</span>()))
+        <span class="fn">limpiar</span>()
+    }
+
+    <span class="cm">// ── SCAFFOLD (estructura principal) ───────────</span>
+    <span class="type">Scaffold</span>(
+        snackbarHost = { <span class="type">SnackbarHost</span>(snackbarHostState) },
+        topBar = {
+            <span class="type">TopAppBar</span>(
+                title = { <span class="type">Text</span>(<span class="str">"Registro de Personas"</span>) },
+                colors = <span class="type">TopAppBarDefaults</span>.<span class="fn">topAppBarColors</span>(
+                    containerColor = <span class="type">MaterialTheme</span>.colorScheme.primaryContainer
+                )
+            )
+        }
+    ) { padding ->
+        <span class="type">LazyColumn</span>(
+            modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxSize</span>().<span class="fn">padding</span>(padding).<span class="fn">padding</span>(<span class="num">16</span>.dp),
+            verticalArrangement = <span class="type">Arrangement</span>.<span class="fn">spacedBy</span>(<span class="num">8</span>.dp)
+        ) {
+            item {
+                <span class="cm">/* ── Card del formulario ── */</span>
+                <span class="type">Card</span>(shape = <span class="type">RoundedCornerShape</span>(<span class="num">16</span>.dp)) {
+                    <span class="type">Column</span>(<span class="type">Modifier</span>.<span class="fn">padding</span>(<span class="num">16</span>.dp)) {
+                        <span class="type">OutlinedTextField</span>(
+                            value = nombre,
+                            onValueChange = { nombre = it; nombreError = <span class="kw">false</span> },
+                            label = { <span class="type">Text</span>(<span class="str">"Nombre *"</span>) },
+                            isError = nombreError,
+                            modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(), singleLine = <span class="kw">true</span>
+                        )
+                        <span class="type">Spacer</span>(<span class="type">Modifier</span>.<span class="fn">height</span>(<span class="num">8</span>.dp))
+                        <span class="type">OutlinedTextField</span>(
+                            value = apellido,
+                            onValueChange = { apellido = it; apellidoError = <span class="kw">false</span> },
+                            label = { <span class="type">Text</span>(<span class="str">"Apellido *"</span>) },
+                            isError = apellidoError,
+                            modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(), singleLine = <span class="kw">true</span>
+                        )
+                        <span class="type">Spacer</span>(<span class="type">Modifier</span>.<span class="fn">height</span>(<span class="num">8</span>.dp))
+                        <span class="type">OutlinedTextField</span>(
+                            value = email,
+                            onValueChange = { email = it; emailError = <span class="kw">false</span> },
+                            label = { <span class="type">Text</span>(<span class="str">"Correo *"</span>) },
+                            isError = emailError,
+                            modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(), singleLine = <span class="kw">true</span>,
+                            keyboardOptions = <span class="type">KeyboardOptions</span>(keyboardType = <span class="type">KeyboardType</span>.Email)
+                        )
+                        <span class="type">Spacer</span>(<span class="type">Modifier</span>.<span class="fn">height</span>(<span class="num">8</span>.dp))
+                        <span class="type">Row</span>(<span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(), horizontalArrangement = <span class="type">Arrangement</span>.<span class="fn">spacedBy</span>(<span class="num">8</span>.dp)) {
+                            <span class="type">OutlinedTextField</span>(
+                                value = edad,
+                                onValueChange = { edad = it; edadError = <span class="kw">false</span> },
+                                label = { <span class="type">Text</span>(<span class="str">"Edad"</span>) }, isError = edadError,
+                                modifier = <span class="type">Modifier</span>.<span class="fn">weight</span>(<span class="num">1</span>f), singleLine = <span class="kw">true</span>,
+                                keyboardOptions = <span class="type">KeyboardOptions</span>(keyboardType = <span class="type">KeyboardType</span>.Number)
+                            )
+                            <span class="type">OutlinedTextField</span>(
+                                value = telefono,
+                                onValueChange = { telefono = it },
+                                label = { <span class="type">Text</span>(<span class="str">"Teléfono"</span>) },
+                                modifier = <span class="type">Modifier</span>.<span class="fn">weight</span>(<span class="num">1</span>f), singleLine = <span class="kw">true</span>
+                            )
+                        }
+                        <span class="type">Spacer</span>(<span class="type">Modifier</span>.<span class="fn">height</span>(<span class="num">16</span>.dp))
+                        <span class="type">Button</span>(onClick = { <span class="fn">guardar</span>() }, modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(),
+                            shape = <span class="type">RoundedCornerShape</span>(<span class="num">50</span>)) {
+                            <span class="type">Text</span>(<span class="str">"Guardar Registro"</span>)
+                        }
+                        <span class="type">Spacer</span>(<span class="type">Modifier</span>.<span class="fn">height</span>(<span class="num">8</span>.dp))
+                        <span class="type">OutlinedButton</span>(onClick = { <span class="fn">limpiar</span>() }, modifier = <span class="type">Modifier</span>.<span class="fn">fillMaxWidth</span>(),
+                            shape = <span class="type">RoundedCornerShape</span>(<span class="num">50</span>)) {
+                            <span class="type">Text</span>(<span class="str">"Limpiar"</span>)
+                        }
+                    }
+                }
+            }
+
+            items(personas, key = { it.id }) { persona ->
+                <span class="type">PersonaCard</span>(persona = persona, onEliminar = { personas.<span class="fn">remove</span>(persona) })
+            }
+        }
+    }
+}</pre>
+      </div>
+
+      <div class="tip-box">
+        <div class="tip-icon">🎉</div>
+        <p><strong>¡Listo!</strong> Ya tienes el formulario completo. Los conceptos clave que aprendiste: <code>var</code> con <code>by remember</code>, <code>mutableStateOf</code>, <code>mutableStateListOf</code>, <code>OutlinedTextField</code>, validación y <code>LazyColumn</code>.</p>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn btn-secondary" onclick="goTo(6)">← Anterior</button>
+        <button class="btn btn-primary" onclick="goTo(0)">Volver al inicio ↺</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  var current = 0;
+  var total = 8;
+
+  function goTo(index) {
+    document.getElementById('step-' + current).classList.remove('active');
+    document.querySelectorAll('.nav-item')[current].classList.remove('active');
+    document.querySelectorAll('.nav-item')[current].classList.add('done');
+
+    current = index;
+
+    document.getElementById('step-' + current).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(function(el, i) {
+      el.classList.remove('active');
+      if (i === current) el.classList.add('active');
+    });
+
+    var pct = ((current + 1) / total * 100).toFixed(0);
+    document.getElementById('progressBar').style.width = pct + '%';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('progressBar').style.width = '12%';
+</script>
+</body>
+</html>
